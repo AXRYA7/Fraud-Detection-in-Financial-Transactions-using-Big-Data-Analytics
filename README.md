@@ -1,6 +1,6 @@
 # Fraud Detection in Financial Transactions using Big Data Analytics
 
-## 📌 Project Overview
+## Project Overview
 Financial institutions process large volumes of transaction data daily, making manual fraud detection impractical. This project implements a scalable fraud detection framework that leverages Big Data analytics and machine learning techniques to identify potentially fraudulent financial transactions efficiently.
 
 ## Objective
@@ -13,7 +13,7 @@ To design and implement a scalable fraud detection system capable of processing 
 - VS Code  
 - GitHub  
 
-## 📊 Dataset Description
+## Dataset Description
 - **Dataset:** Credit Card Fraud Detection Dataset (Kaggle)  
 - **Records:** ~280,000 transactions  
 - **Nature:** Highly imbalanced dataset representing real-world fraud scenarios  
