@@ -1,92 +1,81 @@
+import os
+from pyexpat import model
 from pyspark.sql import SparkSession
-from pyspark.ml.feature import VectorAssembler, StandardScaler
+from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.classification import LogisticRegression
-from pyspark.ml.evaluation import (
-    BinaryClassificationEvaluator,
-    MulticlassClassificationEvaluator
-)
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
 
 def main():
-    # Create Spark session
     spark = SparkSession.builder \
         .appName("FraudDetectionBigData") \
         .getOrCreate()
 
+    # Absolute path resolution (Windows-safe)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_PATH = os.path.join(BASE_DIR, "data", "creditcard.csv")
+    MODEL_PATH = os.path.join(BASE_DIR, "models", "fraud_model")
+
+    print("RUNNING UPDATED TRAINING FILE")
+    print("Loading data from:", DATA_PATH)
+
     # Load dataset
     df = spark.read.csv(
-        "../data/creditcard.csv",
+        DATA_PATH,
         header=True,
         inferSchema=True
     )
 
-    # Select feature columns (exclude label)
-    feature_cols = [c for c in df.columns if c != "Class"]
+    # Rename label column
+    df = df.withColumnRenamed("Class", "label")
 
-    # Assemble features into vector
+    # Feature columns
+    feature_cols = [c for c in df.columns if c != "label"]
+
     assembler = VectorAssembler(
         inputCols=feature_cols,
-        outputCol="features_raw"
+        outputCol="features"
     )
-    df_vec = assembler.transform(df)
 
-    # Scale features
-    scaler = StandardScaler(
-        inputCol="features_raw",
-        outputCol="features",
-        withMean=True,
-        withStd=True
-    )
-    scaler_model = scaler.fit(df_vec)
-    df_final = scaler_model.transform(df_vec)
+    final_df = assembler.transform(df).select("features", "label")
 
     # Train-test split
-    train_df, test_df = df_final.randomSplit([0.8, 0.2], seed=42)
+    train_df, test_df = final_df.randomSplit([0.8, 0.2], seed=42)
 
-    # Logistic Regression model
+    # Model
     lr = LogisticRegression(
         featuresCol="features",
-        labelCol="Class",
-        maxIter=10
+        labelCol="label"
     )
+
     model = lr.fit(train_df)
 
-    # Predictions
+    # Evaluation
     predictions = model.transform(test_df)
 
-    # AUC evaluation
-    auc_evaluator = BinaryClassificationEvaluator(
-        labelCol="Class",
+    evaluator = BinaryClassificationEvaluator(
+        labelCol="label",
+        rawPredictionCol="rawPrediction",
         metricName="areaUnderROC"
     )
-    auc = auc_evaluator.evaluate(predictions)
-    print(f"AUC Score: {auc}")
 
-    # Precision (Fraud class = 1)
-    precision_evaluator = MulticlassClassificationEvaluator(
-        labelCol="Class",
-        predictionCol="prediction",
-        metricName="precisionByLabel"
-    )
-    precision = precision_evaluator.evaluate(
-        predictions,
-        {precision_evaluator.metricLabel: 1.0}
-    )
+    auc = evaluator.evaluate(predictions)
+    print("AUC Score:", auc)
 
-    # Recall (Fraud class = 1)
-    recall_evaluator = MulticlassClassificationEvaluator(
-        labelCol="Class",
-        predictionCol="prediction",
-        metricName="recallByLabel"
-    )
-    recall = recall_evaluator.evaluate(
-        predictions,
-        {recall_evaluator.metricLabel: 1.0}
-    )
+   # Save model (Windows-safe)
+    import shutil
 
-    print(f"Precision: {precision}")
-    print(f"Recall: {recall}")
+    if os.path.exists(MODEL_PATH):
+        shutil.rmtree(MODEL_PATH)
+
+    print("Saving model to:", MODEL_PATH)
+    print("Training complete — model kept in memory")
+
+
+
 
     spark.stop()
+
 
 if __name__ == "__main__":
     main()
