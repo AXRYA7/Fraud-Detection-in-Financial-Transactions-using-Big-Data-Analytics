@@ -18,19 +18,27 @@ To design and implement a scalable fraud detection system capable of processing 
 - **Records:** ~280,000 transactions  
 - **Nature:** Highly imbalanced dataset representing real-world fraud scenarios  
 
-## Big Data Concepts Applied
-- Distributed and parallel data processing  
-- In-memory computation using Apache Spark  
-- Scalable machine learning pipelines  
-- Handling class imbalance in fraud detection datasets  
-
 ## Project Structure
-
-
-
-
-
-
+fraud-detection-in-financial-transactions/
+│
+├── frontend/                <- Figma Make ->
+│   ├── index.html            
+│   ├── style.css             
+│   └── script.js             
+│
+├── backend/                 
+│   ├── app.py                
+│   ├── requirements.txt
+│   └── model.pkl             
+│
+├── models/                  
+│   └── fraud_model.pkl
+│
+├── src/                     
+│   └── train_model.py
+│
+├── README.md
+└── .gitignore
 
 ## Disclaimer
 This project is developed for academic purposes to demonstrate the application of Big Data analytics and machine learning in fraud detection systems.
