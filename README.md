@@ -38,7 +38,7 @@ fraud-detection-in-financial-transactions/
 │   └── train_model.py
 │
 ├── README.md
-└── .gitignore
+└── .gitignore !
 
 ## Disclaimer
 This project is developed for academic purposes to demonstrate the application of Big Data analytics and machine learning in fraud detection systems.
